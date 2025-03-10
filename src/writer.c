@@ -7,8 +7,13 @@ void write_new_elf(const char *output_file, void *elf_map, size_t size) {
         return;
     }
 
-    if (write(fd, elf_map, size) != (ssize_t)size) {
-        perror("write");
+    ssize_t written = write(fd, elf_map, size);
+    if (written != (ssize_t)size) {
+        if (written < 0) {
+            perror("write");
+        } else {
+            printf("Warning: wrote only %zd bytes of %zu\n", written, size);
+        }
     }
 
     close(fd);
