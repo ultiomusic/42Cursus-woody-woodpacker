@@ -1,28 +1,42 @@
 #include "elf_utils.h"
 #include "encryption.h"
 #include "writer.h"
+#include <string.h>
 #include <stdio.h>
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        printf("Usage: %s <ELF binary>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <ELF binary>\n", argv[0]);
         return 1;
     }
 
+    // Self-packing kontrolü (basit string karşılaştırma)
+    const char *self_name = "woody_woodpacker";
+    size_t self_len = strlen(self_name);
+    size_t input_len = strlen(argv[1]);
+
+    if (input_len >= self_len && 
+        strcmp(argv[1] + input_len - self_len, self_name) == 0) {
+        fprintf(stderr, "Error: Cannot pack the packer itself\n");
+        return 1;
+    }
+
+    // ELF işlemleri
     size_t elf_size;
     void *elf_map = map_and_check_elf(argv[1], &elf_size);
-    if (!elf_map) {
-        return 1; // Hata mesajı zaten verildi
-    }
+    if (!elf_map) return 1;
 
-    encrypt_text_section(elf_map);
-    write_new_elf("woody", elf_map, elf_size);
-
-    if (munmap(elf_map, elf_size) == -1) {
-        perror("munmap failed");
+    if (encrypt_text_section(elf_map) != 0) {
+        munmap(elf_map, elf_size);
         return 1;
     }
 
-    printf("Encrypted ELF saved as woody\n");
+    if (write_new_elf("woody", elf_map, elf_size) != 0) {
+        munmap(elf_map, elf_size);
+        return 1;
+    }
+
+    munmap(elf_map, elf_size);
+    printf("Success: Encrypted ELF saved as woody\n");
     return 0;
 }

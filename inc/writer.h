@@ -2,7 +2,8 @@
 #define WRITER_H
 
 #include "elf_utils.h"
+#include <sys/types.h>
 
-void write_new_elf(const char *output_file, void *elf_map, size_t size);
+int write_new_elf(const char *output_file, void *elf_map, size_t size); // void -> int yapıldı
 
 #endif
