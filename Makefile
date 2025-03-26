@@ -11,7 +11,7 @@ ifeq ($(ARCH),32)
     OUT := woody_woodpacker_32
 else
     CFLAGS += -m64
-    OUT := woody_woodpacker_64
+    OUT := woody_woodpacker
 endif
 
 all: $(OUT)
@@ -23,7 +23,7 @@ clean:
 	rm -f $(OBJ)
 
 fclean: clean
-	rm -f woody_woodpacker_32 woody_woodpacker_64
+	rm -f woody_woodpacker_32 woody_woodpacker
 
 re: fclean all
 
@@ -47,7 +47,7 @@ ifeq ($(ARCH),32)
     OUT := woody_woodpacker_32
 else
     CFLAGS += -m64
-    OUT := woody_woodpacker_64
+    OUT := woody_woodpacker
 endif
 
 all: $(OUT)
@@ -59,7 +59,7 @@ clean:
 	rm -f $(OBJ)
 
 fclean: clean
-	rm -f woody_woodpacker_32 woody_woodpacker_64
+	rm -f woody_woodpacker_32 woody_woodpacker
 
 re: fclean all
 
