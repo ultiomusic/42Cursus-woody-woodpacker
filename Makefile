@@ -1,7 +1,10 @@
 CC = gcc
+ASM = nasm
 CFLAGS = -Wall -Wextra -Werror -Iinc -m64
+ASMFLAGS = -f elf64
 
 SRC = src/main.c src/elf_utils.c src/encryption.c src/writer.c
+ASMSRC = src/decryptor.s #src/encrypt.s
 OBJ = $(SRC:.c=.o) $(ASMSRC:.s=.o)
 OUT = woody_woodpacker
 
@@ -13,6 +16,8 @@ $(OUT): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+%.o: %.s
+	$(ASM) $(ASMFLAGS) -o $@ $<
 
 clean:
 	rm -f $(OBJ)
