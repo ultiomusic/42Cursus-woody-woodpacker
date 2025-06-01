@@ -10,7 +10,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Self-packing kontrolü (basit string karşılaştırma)
     const char *self_name = "woody_woodpacker";
     size_t self_len = strlen(self_name);
     size_t input_len = strlen(argv[1]);
@@ -21,7 +20,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // ELF işlemleri
     size_t elf_size;
     void *elf_map = map_and_check_elf(argv[1], &elf_size);
     if (!elf_map) return 1;

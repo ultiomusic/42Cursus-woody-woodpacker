@@ -19,5 +19,5 @@ int write_new_elf(const char *output_file, void *elf_map, size_t size) {
         return -1;
     }
 
-    return 0; // Başarılı
+    return 0;
 }

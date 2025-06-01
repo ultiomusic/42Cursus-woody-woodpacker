@@ -21,7 +21,6 @@ int encrypt_text_section(void *elf_map) {
         return -1;
     }
 
-    // `/dev/urandom` üzerinden rastgele anahtar oku
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd < 0) {
         perror("open /dev/urandom failed");
@@ -36,20 +35,16 @@ int encrypt_text_section(void *elf_map) {
     }
     close(fd);
 
-    // Anahtarı HEX formatına çevir (07A51FF040D45D5CD gibi)
-    char key_str[KEY_SIZE * 2 + 1];  // 18 karakter + NULL
+    char key_str[KEY_SIZE * 2 + 1];
     for (int i = 0; i < KEY_SIZE; i++) {
         sprintf(&key_str[i * 2], "%02X", key[i]);
     }
     key_str[KEY_SIZE * 2] = '\0';  // NULL-terminate
 
-    // Anahtarı ekrana yazdır
     printf("Encryption key: %s\n", key_str);;
 
-    // Şifreleme işlemini uygula
     xor_encrypt((char *)elf_map + text_seg->p_offset, text_seg->p_memsz, key, KEY_SIZE);
 
-    // Anahtarı ELF dosyasının bir yerine göm
     unsigned char *key_storage = (unsigned char *)elf_map + text_seg->p_offset - KEY_SIZE;
     memcpy(key_storage, key, KEY_SIZE);
 
