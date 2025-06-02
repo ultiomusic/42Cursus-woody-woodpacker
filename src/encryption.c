@@ -21,19 +21,9 @@ int encrypt_text_section(void *elf_map) {
         return -1;
     }
 
-    int fd = open("/dev/urandom", O_RDONLY);
-    if (fd < 0) {
-        perror("open /dev/urandom failed");
-        return -1;
-    }
-
     unsigned char key[KEY_SIZE];
-    if (read(fd, key, KEY_SIZE) != KEY_SIZE) {
-        perror("read /dev/urandom failed");
-        close(fd);
-        return -1;
-    }
-    close(fd);
+    for (int i = 0; i < KEY_SIZE; i++)
+        key[i] = 42;
 
     char key_str[KEY_SIZE * 2 + 1];
     for (int i = 0; i < KEY_SIZE; i++) {
@@ -41,7 +31,7 @@ int encrypt_text_section(void *elf_map) {
     }
     key_str[KEY_SIZE * 2] = '\0';  // NULL-terminate
 
-    printf("Encryption key: %s\n", key_str);;
+    printf("Encryption key: %s\n", key_str);
 
     xor_encrypt((char *)elf_map + text_seg->p_offset, text_seg->p_memsz, key, KEY_SIZE);
 
