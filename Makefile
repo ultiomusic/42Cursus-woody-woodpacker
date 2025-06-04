@@ -17,7 +17,6 @@ INC_PAYLOAD = src/woody_payload.inc
 src/woody_payload.o: src/woody_payload.s
 	$(ASM) $(ASMFLAGS) -o $@ $<
 
-# Extract only the .text section from woody_payload.o and convert to C array
 src/woody_payload.bin: src/woody_payload.o
 	objcopy -O binary --only-section=.text src/woody_payload.o src/woody_payload.bin
 

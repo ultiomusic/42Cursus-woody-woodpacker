@@ -8,30 +8,17 @@ woody_entry:
     push    r13
     push    r14
     push    r15
-    mov     r12, rsp        ; Save stack pointer after pushes
-    sub     rsp, 8          ; Align stack to 16 bytes (if needed)
+    mov     r12, rsp        
+    sub     rsp, 8          
 
-    ; write(1, msg, 16)
     mov     rax, 1
     mov     rdi, 1
     lea     rsi, [rel msg]
     mov     rdx, 16
     syscall
 
-    ; mprotect (page align)
-    mov     rdi, 0x1111111111111111      ; TEXT_START_PATCH
-    mov     r8, 4096
-    mov     rax, rdi
-    and     rax, -4096
-    mov     rdi, rax
-    mov     rsi, 0x2222222222222222      ; TEXT_SIZE_PATCH
-    mov     rdx, 7                       ; PROT_READ|PROT_WRITE|PROT_EXEC
-    mov     rax, 10                      ; syscall: mprotect
-    syscall
-
-    ; XOR decrypt loop
     mov     rdi, 0x1111111111111111      ; text_start
-    mov     rcx, 0x2222222222222222      ; text_size
+    mov     rcx, 0x2222222222222222      ; text_size 
     mov     al, 42                       ; key
     xor     rbx, rbx
 xor_loop:
@@ -42,22 +29,31 @@ xor_loop:
     jmp     xor_loop
 xor_done:
 
-    ; write(1, jumpmsg, 22)
+    ; write(1, afterxor, 16)
     mov     rax, 1
     mov     rdi, 1
-    lea     rsi, [rel jumpmsg]
-    mov     rdx, 22
+    lea     rsi, [rel afterxor]
+    mov     rdx, 16
     syscall
 
-    mov     rax, 0x3333333333333333      ; ORIG_ENTRY_PATCH
-    mov     rsp, r12        ; Restore stack pointer (after pushes)
+    mov     rsp, r12
     pop     r15
     pop     r14
     pop     r13
     pop     r12
     pop     rbp
     pop     rbx
-    call    rax
+    jmp     rax
+
+fake_argv:
+    dq fake_progname
+    dq 0
+fake_progname:
+    db "woody",0
 
 msg:        db "hello from woody", 10
+beforexor:  db "before xor loop", 10
+afterxor:   db "after xor loop", 10
 jumpmsg:    db "jumping to orig_entry", 10
+insidexor:  db "inside xor loop", 10
+mprotectfail: db "mprotect failed!\n", 0
