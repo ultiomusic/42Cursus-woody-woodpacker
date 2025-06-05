@@ -8,8 +8,9 @@ woody_entry:
     push    r13
     push    r14
     push    r15
-    mov     r12, rsp        
-    sub     rsp, 8          
+    mov     r12, rsp
+    sub     rsp, 8
+    mov     r15, rdx                ; save rdx (_rtld_fini)          
 
     mov     rax, 1
     mov     rdi, 1
@@ -37,12 +38,15 @@ xor_done:
     syscall
 
     mov     rsp, r12
+    mov     rdx, r15                ; restore rdx
     pop     r15
     pop     r14
     pop     r13
     pop     r12
     pop     rbp
     pop     rbx
+    align 8
+    mov     rax, 0x3333333333333333      ; orig_entry (patched at runtime)
     jmp     rax
 
 fake_argv:

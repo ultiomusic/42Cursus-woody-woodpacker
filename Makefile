@@ -10,6 +10,7 @@ OUT = woody_woodpacker
 
 all: $(INC_PAYLOAD) $(OUT)
 INC_PAYLOAD = src/woody_payload.inc
+XXD = xxd
 
 # src/woody_payload.o: src/woody_payload.c
 # 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -20,8 +21,11 @@ src/woody_payload.o: src/woody_payload.s
 src/woody_payload.bin: src/woody_payload.o
 	objcopy -O binary --only-section=.text src/woody_payload.o src/woody_payload.bin
 
-src/woody_payload.inc: src/woody_payload.bin
-	xxd -i src/woody_payload.bin > src/woody_payload.inc
+$(XXD): xxd.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+src/woody_payload.inc: src/woody_payload.bin $(XXD)
+	./$(XXD) src/woody_payload.bin > src/woody_payload.inc
 
 src/main.o: src/woody_payload.inc
 
@@ -36,7 +40,7 @@ $(OUT): $(OBJ)
 	$(ASM) $(ASMFLAGS) -o $@ $<
 
 clean:
-	rm -f $(OBJ) src/woody_payload.bin src/woody_payload.inc woody woody_woodpacker
+	rm -f $(OBJ) src/woody_payload.bin src/woody_payload.inc woody woody_woodpacker $(XXD)
 
 fclean: clean
 	rm -f $(OUT)

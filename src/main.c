@@ -52,6 +52,11 @@ int main(int argc, char **argv) {
         munmap(elf_map, elf_size);
         return 1;
     }
+    if (encrypt_text_section(elf_map) != 0) {
+        fprintf(stderr, "Failed to encrypt .text section\n");
+        munmap(elf_map, elf_size);
+        return 1;
+    }
     size_t page_size = 4096;
     Elf64_Addr mprot_addr = text_addr & ~(page_size - 1);
     Elf64_Xword mprot_size = (text_addr + text_size + page_size - 1) & ~(page_size - 1);
