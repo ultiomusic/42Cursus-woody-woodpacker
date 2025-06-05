@@ -3,12 +3,32 @@ ASM = nasm
 CFLAGS = -Wall -Wextra -Werror -Iinc -m64
 ASMFLAGS = -f elf64
 
-SRC = src/main.c src/elf_utils.c src/encryption.c src/writer.c
-ASMSRC = src/decryptor.s
+SRC = src/main.c src/elf_utils.c src/encryption.c src/writer.c src/embed.c src/payload_patch.c
+ASMSRC = src/decryptor.s #src/encrypt.s
 OBJ = $(SRC:.c=.o) $(ASMSRC:.s=.o)
 OUT = woody_woodpacker
 
-all: $(OUT)
+all: $(INC_PAYLOAD) $(OUT)
+INC_PAYLOAD = src/woody_payload.inc
+XXD = xxd
+
+# src/woody_payload.o: src/woody_payload.c
+# 	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/woody_payload.o: src/woody_payload.s
+	$(ASM) $(ASMFLAGS) -o $@ $<
+
+src/woody_payload.bin: src/woody_payload.o
+	objcopy -O binary --only-section=.text src/woody_payload.o src/woody_payload.bin
+
+$(XXD): xxd.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+src/woody_payload.inc: src/woody_payload.bin $(XXD)
+	./$(XXD) src/woody_payload.bin > src/woody_payload.inc
+
+src/main.o: src/woody_payload.inc
+
 
 $(OUT): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
@@ -20,7 +40,7 @@ $(OUT): $(OBJ)
 	$(ASM) $(ASMFLAGS) -o $@ $<
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) src/woody_payload.bin src/woody_payload.inc woody woody_woodpacker $(XXD)
 
 fclean: clean
 	rm -f $(OUT)

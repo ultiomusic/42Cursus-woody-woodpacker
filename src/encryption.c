@@ -10,48 +10,38 @@ void xor_encrypt(void *data, size_t size, unsigned char *key, size_t key_size) {
 }
 
 int encrypt_text_section(void *elf_map) {
-    Elf64_Phdr *text_seg = find_text_segment(elf_map);
-    if (!text_seg) {
-        fprintf(stderr, "No .text segment found\n");
-        return -1;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr *)elf_map;
+    Elf64_Shdr *shdr = (Elf64_Shdr *)((char *)elf_map + ehdr->e_shoff);
+    const char *shstrtab = (char *)elf_map + shdr[ehdr->e_shstrndx].sh_offset;
+    Elf64_Off text_offset = 0;
+    Elf64_Xword text_size = 0;
+    for (int i = 0; i < ehdr->e_shnum; i++) {
+        if (strcmp(shstrtab + shdr[i].sh_name, ".text") == 0) {
+            text_offset = shdr[i].sh_offset;
+            text_size = shdr[i].sh_size;
+            break;
+        }
     }
-
-    if (mprotect((char *)elf_map + text_seg->p_offset, text_seg->p_memsz, PROT_READ | PROT_WRITE | PROT_EXEC) == -1) {
-        perror("mprotect failed");
-        return -1;
-    }
-
-    // `/dev/urandom` üzerinden rastgele anahtar oku
-    int fd = open("/dev/urandom", O_RDONLY);
-    if (fd < 0) {
-        perror("open /dev/urandom failed");
+    if (!text_offset || !text_size) {
+        fprintf(stderr, "No .text section found\n");
         return -1;
     }
 
     unsigned char key[KEY_SIZE];
-    if (read(fd, key, KEY_SIZE) != KEY_SIZE) {
-        perror("read /dev/urandom failed");
-        close(fd);
-        return -1;
-    }
-    close(fd);
+    for (int i = 0; i < KEY_SIZE; i++)
+        key[i] = 42;
 
-    // Anahtarı HEX formatına çevir (07A51FF040D45D5CD gibi)
-    char key_str[KEY_SIZE * 2 + 1];  // 18 karakter + NULL
+    char key_str[KEY_SIZE * 2 + 1];
     for (int i = 0; i < KEY_SIZE; i++) {
         sprintf(&key_str[i * 2], "%02X", key[i]);
     }
     key_str[KEY_SIZE * 2] = '\0';  // NULL-terminate
 
-    // Anahtarı ekrana yazdır
-    printf("Encryption key: %s\n", key_str);;
+    printf("Encryption key: %s\n", key_str);
 
-    // Şifreleme işlemini uygula
-    xor_encrypt((char *)elf_map + text_seg->p_offset, text_seg->p_memsz, key, KEY_SIZE);
+    xor_encrypt((char *)elf_map + text_offset, text_size, key, KEY_SIZE);
 
-    // Anahtarı ELF dosyasının bir yerine göm
-    unsigned char *key_storage = (unsigned char *)elf_map + text_seg->p_offset - KEY_SIZE;
-    memcpy(key_storage, key, KEY_SIZE);
+    // Optionally store the key somewhere if needed
 
     return 0; // Başarılı
 }
