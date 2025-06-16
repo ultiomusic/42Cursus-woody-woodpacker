@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     if (input_len >= self_len && 
         strcmp(argv[1] + input_len - self_len, self_name) == 0) {
-        fprintf(stderr, "Error: Cannot pack the packer itself\n");
+        perror("Error: Cannot pack the packer itself");
         return 1;
     }
 
@@ -48,12 +48,12 @@ int main(int argc, char **argv) {
         }
     }
     if (!text_addr || !text_size) {
-        fprintf(stderr, "Error: .text section not found\n");
+        perror("Error: .text section not found");
         munmap(elf_map, elf_size);
         return 1;
     }
     if (encrypt_text_section(elf_map) != 0) {
-        fprintf(stderr, "Failed to encrypt .text section\n");
+        perror("Error: Encryption failed");
         munmap(elf_map, elf_size);
         return 1;
     }
@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
     Elf64_Addr mprot_addr = text_addr & ~(page_size - 1);
     Elf64_Xword mprot_size = (text_addr + text_size + page_size - 1) & ~(page_size - 1);
     mprot_size -= mprot_addr;
-    printf("patch: text_addr=0x%lx text_size=0x%lx mprot_addr=0x%lx mprot_size=0x%lx orig_entry=0x%lx\n", text_addr, text_size, mprot_addr, mprot_size, orig_entry);
     // Find main symbol address
     Elf64_Addr main_addr = 0;
     Elf64_Shdr *symtab = NULL, *strtab = NULL;
@@ -83,22 +82,15 @@ int main(int argc, char **argv) {
         }
     }
     if (!main_addr) {
-        fprintf(stderr, "Error: main symbol not found\n");
+        perror("Error: main symbol not found");
         munmap(elf_map, elf_size);
         return 1;
     }
-    printf("patch: main_addr=0x%lx\n", main_addr);
     patch_payload(patched_payload, src_woody_payload_bin_len, text_addr, text_size, orig_entry, main_addr);
-
-    printf("patched_payload first 16 bytes: ");
-    for (unsigned int i = 0; i < 16 && i < src_woody_payload_bin_len; i++)
-        printf("%02x ", patched_payload[i]);
-    printf("\n");
-
     size_t new_size = elf_size + src_woody_payload_bin_len;
     void *output_elf = calloc(1, new_size); 
     if (!output_elf) {
-        fprintf(stderr, "Failed to allocate output buffer\n");
+        perror("Error: Failed to allocate output buffer");
         munmap(elf_map, elf_size);
         return 1;
     }
@@ -107,10 +99,6 @@ int main(int argc, char **argv) {
 
     Elf64_Ehdr *ehdr_dbg = (Elf64_Ehdr *)output_elf;
     Elf64_Phdr *phdr_dbg = (Elf64_Phdr *)((char *)output_elf + ehdr_dbg->e_phoff);
-    for (int i = 0; i < ehdr_dbg->e_phnum; i++) {
-        printf("PHDR[%d]: type=0x%x vaddr=0x%lx memsz=0x%lx filesz=0x%lx flags=0x%x\n",
-            i, phdr_dbg[i].p_type, phdr_dbg[i].p_vaddr, phdr_dbg[i].p_memsz, phdr_dbg[i].p_filesz, phdr_dbg[i].p_flags);
-    }
 
     for (int i = 0; i < ehdr_dbg->e_phnum; i++) {
         if (phdr_dbg[i].p_type == PT_LOAD &&
@@ -118,7 +106,6 @@ int main(int argc, char **argv) {
             text_addr < phdr_dbg[i].p_vaddr + phdr_dbg[i].p_memsz)
         {
             phdr_dbg[i].p_flags |= PF_W;
-            printf("[patch] Set PF_W for segment %d (vaddr=0x%lx)\n", i, phdr_dbg[i].p_vaddr);
         }
     }
 
@@ -132,11 +119,6 @@ int main(int argc, char **argv) {
     Elf64_Addr payload_vaddr = 0;
     if (last_load) {
         payload_vaddr = last_load->p_vaddr + last_load->p_memsz - src_woody_payload_bin_len;
-        printf("[debug] .text: 0x%lx - 0x%lx\n", text_addr, text_addr + text_size);
-        printf("[debug] payload_vaddr: 0x%lx\n", payload_vaddr);
-        if (payload_vaddr >= text_addr && payload_vaddr < text_addr + text_size) {
-            printf("[WARNING] Payload overlaps .text section!\n");
-        }
     }
 
     if (write_new_elf("woody", output_elf, new_size) != 0) {
@@ -146,6 +128,6 @@ int main(int argc, char **argv) {
     }
     free(output_elf);
     munmap(elf_map, elf_size);
-    printf("Success: Encrypted ELF saved as woody\n");
+    
     return 0;
 }
