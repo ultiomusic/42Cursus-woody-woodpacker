@@ -14,7 +14,7 @@ int write_new_elf(const char *output_file, void *elf_map, size_t size) {
         if (written < 0) {
             perror("write");
         } else {
-            fprintf(stderr, "Partial write: %zd/%zu bytes\n", written, size);
+            perror("Partial write");
         }
         return -1;
     }

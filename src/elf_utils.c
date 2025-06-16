@@ -20,7 +20,7 @@ void *map_and_check_elf(const char *filename, size_t *size) {
         ehdr.e_ident[EI_CLASS] != ELFCLASS64 ||
         ehdr.e_machine != EM_X86_64 ||
         (ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN)) {
-        fprintf(stderr, "Error: Unsupported file. x86_64 ELF binaries only\n");
+        perror("Error: Unsupported ELF file format");
         close(fd);
         return NULL;
     }
