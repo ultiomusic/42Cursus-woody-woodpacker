@@ -116,7 +116,6 @@ int main(int argc, char **argv) {
             last_load = &phdr[i];
         }
     }
-    Elf64_Addr payload_vaddr = 0;
     if (last_load) {
         payload_vaddr = last_load->p_vaddr + last_load->p_memsz - src_woody_payload_bin_len;
     }
