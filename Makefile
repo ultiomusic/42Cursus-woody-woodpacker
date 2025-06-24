@@ -12,8 +12,8 @@ all: $(INC_PAYLOAD) $(OUT)
 INC_PAYLOAD = src/woody_payload.inc
 XXD = xxd
 
-# src/woody_payload.o: src/woody_payload.c
-# 	$(CC) $(CFLAGS) -c -o $@ $<
+src/woody_payload.o: src/woody_payload.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 src/woody_payload.o: src/woody_payload.s
 	$(ASM) $(ASMFLAGS) -o $@ $<
@@ -43,7 +43,7 @@ clean:
 	rm -f $(OBJ) src/woody_payload.bin src/woody_payload.inc woody woody_woodpacker $(XXD)
 
 fclean: clean
-	rm -f $(OUT)
+	rm -f $(OUT) src/woody_payload.o
 
 re: fclean all
 
