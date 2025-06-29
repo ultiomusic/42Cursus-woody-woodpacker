@@ -30,13 +30,6 @@ xor_loop:
     jmp     xor_loop
 xor_done:
 
-    ; write(1, afterxor, 16)
-    mov     rax, 1
-    mov     rdi, 1
-    lea     rsi, [rel afterxor]
-    mov     rdx, 16
-    syscall
-
     mov     rsp, r12
     mov     rdx, r15                ; restore rdx
     pop     r15
@@ -55,9 +48,4 @@ fake_argv:
 fake_progname:
     db "woody",0
 
-msg:        db "hello from woody", 10
-beforexor:  db "before xor loop", 10
-afterxor:   db "after xor loop", 10
-jumpmsg:    db "jumping to orig_entry", 10
-insidexor:  db "inside xor loop", 10
-mprotectfail: db "mprotect failed!\n", 0
+msg:        db "....WOODY....", 10

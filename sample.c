@@ -1,7 +1,6 @@
-#include <unistd.h>
+#include <stdio.h>
 
 int main()
 {
-    write(1, "this is a sample program\n", 26);
-    return 0;
+    printf("Hello World!\n");
 }

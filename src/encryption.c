@@ -37,7 +37,7 @@ int encrypt_text_section(void *elf_map) {
     }
     key_str[KEY_SIZE * 2] = '\0';  // NULL-terminate
 
-    printf("Encryption key: %s\n", key_str);
+    printf("key_value: %s\n", key_str);
 
     xor_encrypt((char *)elf_map + text_offset, text_size, key, KEY_SIZE);
 

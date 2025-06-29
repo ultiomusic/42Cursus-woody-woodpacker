@@ -24,8 +24,8 @@ void embed_payload(void *map, unsigned char *payload, size_t payload_size)
         return;
 
     size_t new_offset = last_load->p_offset + last_load->p_filesz;
-    printf("[embed_payload] p_offset=0x%lx, p_filesz(before)=0x%lx, new_offset=0x%lx, payload_size=0x%lx\n",
-        last_load->p_offset, last_load->p_filesz, new_offset, payload_size);
+    //printf("[embed_payload] p_offset=0x%lx, p_filesz(before)=0x%lx, new_offset=0x%lx, payload_size=0x%lx\n",
+    //    last_load->p_offset, last_load->p_filesz, new_offset, payload_size);
     memcpy((char *)map + new_offset, payload, payload_size);
     last_load->p_filesz += payload_size;
     last_load->p_memsz += payload_size;
