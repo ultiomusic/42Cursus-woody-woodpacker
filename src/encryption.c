@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 void xor_encrypt(void *data, size_t size, unsigned char *key, size_t key_size) {
     for (size_t i = 0; i < size; i++) {
@@ -27,21 +29,25 @@ int encrypt_text_section(void *elf_map) {
         return -1;
     }
 
-    unsigned char key[KEY_SIZE];
-    for (int i = 0; i < KEY_SIZE; i++)
-        key[i] = 42;
+    if (syscall(SYS_getrandom, g_key, KEY_SIZE, 0) != KEY_SIZE) {
+        perror("getrandom");
+        return -1;
+    }
+
+    g_key_value = g_key[0];
 
     char key_str[KEY_SIZE * 2 + 1];
     for (int i = 0; i < KEY_SIZE; i++) {
-        sprintf(&key_str[i * 2], "%02X", key[i]);
+        sprintf(&key_str[i * 2], "%02X", g_key[i]);
     }
-    key_str[KEY_SIZE * 2] = '\0';  // NULL-terminate
+    key_str[KEY_SIZE * 2] = '\0';
 
     printf("key_value: %s\n", key_str);
+    unsigned char key[KEY_SIZE];
+    for(int i = 0; i < KEY_SIZE; i++)
+        key[i] = g_key_value;
 
     xor_encrypt((char *)elf_map + text_offset, text_size, key, KEY_SIZE);
 
-    // Optionally store the key somewhere if needed
-
-    return 0; // Başarılı
+    return 0;
 }

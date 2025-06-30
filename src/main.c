@@ -11,6 +11,9 @@
 #include "woody_payload.h"
 #include "woody_payload.inc"
 
+unsigned char g_key_value;
+unsigned char g_key[KEY_SIZE];
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <ELF binary>\n", argv[0]);
@@ -88,7 +91,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     printf("patch: main_addr=0x%lx\n", main_addr);
-    patch_payload(patched_payload, src_woody_payload_bin_len, text_addr, text_size, orig_entry, main_addr);
+    patch_payload(patched_payload, src_woody_payload_bin_len, text_addr, text_size, orig_entry, main_addr, g_key_value);
 
     printf("patched_payload first 16 bytes: ");
     for (unsigned int i = 0; i < 16 && i < src_woody_payload_bin_len; i++)
