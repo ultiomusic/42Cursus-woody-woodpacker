@@ -1,8 +1,7 @@
 segment .text
 	global encrypt
 
-encrypt:	; void encrypt(void *data, size_t data_len, void *text, size_t text_len);
-			; 				rdi			rsi					rdx			rcx
+encrypt:
 	push rbp
 	mov rbp, rsp
 	xor r8, r8

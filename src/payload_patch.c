@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 void patch_payload(unsigned char *payload, size_t payload_size, uint64_t text_vaddr, uint64_t text_size, uint64_t orig_entry, uint64_t main_addr, unsigned char key) {
-    printf("[patch_payload] text_vaddr=0x%lx text_size=0x%lx orig_entry=0x%lx main_addr=0x%lx\n", text_vaddr, text_size, orig_entry, main_addr);
     for (size_t i = 0; i + 8 <= payload_size; i++) {
         uint64_t *p = (uint64_t *)(payload + i);
         if (*p == 0x1111111111111111UL) {

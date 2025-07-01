@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Werror -Iinc -m64
 ASMFLAGS = -f elf64
 
 SRC = src/main.c src/elf_utils.c src/encryption.c src/writer.c src/embed.c src/payload_patch.c
-#ASMSRC = src/decrypt.s
+ASMSRC = src/decrypt.s
 OBJ = $(SRC:.c=.o) $(ASMSRC:.s=.o)
 OUT = woody_woodpacker
 
