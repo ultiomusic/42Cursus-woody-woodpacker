@@ -1,57 +1,98 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
 
 int main(int argc, char **argv) {
+    int fd;
+    off_t size;
+    char *data;
+    char *p, *base;
+
     if (argc != 2) {
-        fprintf(stderr, "usage: %s <file>\n", argv[0]);
-        return 1;
+        printf("usage: %s <file>\n", argv[0]);
+        exit(1);
     }
-    FILE *f = fopen(argv[1], "rb");
-    if (!f) {
-        perror("fopen");
-        return 1;
+
+    fd = open(argv[1], O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
     }
-    if (fseek(f, 0, SEEK_END) != 0) {
-        perror("fseek");
-        fclose(f);
-        return 1;
+
+    size = lseek(fd, 0, SEEK_END);
+    if (size == -1) {
+        perror("lseek");
+        close(fd);
+        exit(1);
     }
-    long size = ftell(f);
-    if (size < 0) {
-        perror("ftell");
-        fclose(f);
-        return 1;
+    if (lseek(fd, 0, SEEK_SET) == -1) {
+        perror("lseek");
+        close(fd);
+        exit(1);
     }
-    rewind(f);
-    unsigned char *data = malloc(size);
+
+    data = malloc(size);
     if (!data) {
         perror("malloc");
-        fclose(f);
-        return 1;
+        close(fd);
+        exit(1);
     }
-    if (fread(data, 1, size, f) != (size_t)size) {
-        perror("fread");
-        fclose(f);
-        free(data);
-        return 1;
+
+    {
+        off_t total = 0;
+        while (total < size) {
+            ssize_t r = read(fd, data + total, size - total);
+            if (r < 0) {
+                perror("read");
+                free(data);
+                close(fd);
+                exit(1);
+            }
+            if (r == 0) break;
+            total += r;
+        }
+        if (total != size) {
+            perror("read");
+            free(data);
+            close(fd);
+            exit(1);
+        }
     }
-    fclose(f);
-    const char *base = strrchr(argv[1], '/');
-    base = base ? base + 1 : argv[1];
-    char var[256];
-    snprintf(var, sizeof(var), "src_%s", base);
-    for (char *p = var; *p; ++p) {
+
+    close(fd);
+
+    base = argv[1];
+    for (p = argv[1]; *p; ++p) {
+        if (*p == '/')
+            base = p + 1;
+    }
+
+    printf("unsigned char src_");
+    for (p = base; *p; ++p) {
         if (*p == '.' || *p == '-')
-            *p = '_';
+            printf("_");
+        else
+            printf("%c", *p);
     }
-    printf("unsigned char %s[] = {", var);
-    for (long i = 0; i < size; ++i) {
+    printf("[] = {");
+
+    for (off_t i = 0; i < size; ++i) {
         if (i % 12 == 0)
             printf("\n    ");
-        printf("0x%02x, ", data[i] & 0xff);
+        printf("0x%02x, ", (unsigned char)data[i]);
     }
-    printf("\n};\nunsigned int %s_len = %ld;\n", var, size);
+
+    printf("\n};\nunsigned int src_");
+    for (p = base; *p; ++p) {
+        if (*p == '.' || *p == '-')
+            printf("_");
+        else
+            printf("%c", *p);
+    }
+    printf("_len = %lld;\n", (long long)size);
+
     free(data);
     return 0;
 }
