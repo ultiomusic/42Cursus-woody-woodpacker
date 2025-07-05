@@ -1,5 +1,4 @@
 #include "payload_patch.h"
-#include <stdio.h>
 
 void patch_payload(unsigned char *payload, size_t payload_size, uint64_t text_vaddr, uint64_t text_size, uint64_t orig_entry, uint64_t main_addr, unsigned char key) {
     for (size_t i = 0; i + 8 <= payload_size; i++) {
