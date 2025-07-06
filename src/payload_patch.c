@@ -15,7 +15,7 @@ void patch_payload(unsigned char *payload, size_t payload_size, uint64_t text_va
     }
 
     for (size_t i = 0; i + 1 < payload_size; i++) {
-        if (payload[i] == 0xB0 && payload[i + 1] == 0x2A) {
+        if (payload[i] == 0xB0) {
             payload[i + 1] = key;
             break;
         }
