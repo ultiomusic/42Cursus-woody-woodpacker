@@ -20,7 +20,7 @@ woody_entry:
 
     mov     rdi, 0x1111111111111111
     mov     rcx, 0x2222222222222222
-    mov     al, 42
+    mov     al, 0
     xor     rbx, rbx
 xor_loop:
     cmp     rbx, rcx
